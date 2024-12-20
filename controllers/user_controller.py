@@ -3,7 +3,7 @@ from flask_bcrypt import generate_password_hash
 
 from models.user import User, user_schema, users_schema
 from util.reflection import populate_object
-from lib.authenticate import auth
+from lib.authenticate import authenticate_return_auth
 
 from db import db
 
@@ -27,15 +27,21 @@ def add_user(request):
     return jsonify({"message": "user created", "result": user_schema.dump(new_user)}), 201
 
 
-@auth
-def get_all_users():
+@authenticate_return_auth
+def get_all_users(request, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     users_query = db.session.query(User).all()
 
     return jsonify({"message": "users retrieved", "result": users_schema.dump(users_query)}), 200
 
 
-@auth
-def get_user_by_id(user_id):
+@authenticate_return_auth
+def get_user_by_id(user_id, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     user_query = db.session.query(User).filter(User.user_id == user_id).first()
 
     if not user_query:
@@ -44,9 +50,13 @@ def get_user_by_id(user_id):
     return jsonify({"message": "user retrieved", "result": user_schema.dump(user_query)}), 200
 
 
-@auth
-def update_user_by_id(request, user_id):
+@authenticate_return_auth
+def update_user_by_id(request, user_id, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     post_data = request.form if request.form else request.json
+
     user_query = db.session.query(User).filter(User.user_id == user_id).first()
 
     if not user_query:
@@ -58,8 +68,12 @@ def update_user_by_id(request, user_id):
     return jsonify({"message": "user updated", "result": user_schema.dump(user_query)}), 200
 
 
-@auth
-def delete_user(user_id):
+@authenticate_return_auth
+def delete_user(user_id, auth_info):
+
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     user = db.session.query(User).filter(User.user_id == user_id).first()
 
     if not user:

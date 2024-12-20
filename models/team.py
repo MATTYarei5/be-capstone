@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import marshmallow as ma
 
 from db import db
+from models.team_game_xref import team_game_xref_table
 
 
 class Team(db.Model):
@@ -14,8 +15,7 @@ class Team(db.Model):
 
     coach = db.relationship("Coach", back_populates="teams")
     players = db.relationship("Player", back_populates="team")
-    home_games = db.relationship("Game", foreign_keys='Game.home_team_id', back_populates="home_team")
-    away_games = db.relationship("Game", foreign_keys='Game.away_team_id', back_populates="away_team")
+    games = db.relationship("Game", secondary=team_game_xref_table, back_populates="teams")
 
     def __init__(self, name, coach_id):
         self.name = name
@@ -24,12 +24,11 @@ class Team(db.Model):
 
 class TeamSchema(ma.Schema):
     class Meta:
-        fields = ['team_id', 'name', 'coach', 'players', 'home_games', 'away_games']
+        fields = ['team_id', 'name', 'coach', 'players', 'games']
 
     coach = ma.fields.Nested("CoachSchema", exclude=['teams'])
     players = ma.fields.Nested("PlayerSchema", many=True, exclude=['team'])
-    home_games = ma.fields.Nested("GameSchema", many=True, exclude=['home_team'])
-    away_games = ma.fields.Nested("GameSchema", many=True, exclude=['away_team'])
+    games = ma.fields.Nested("GameSchema", many=True, exclude=['teams'])
 
 
 team_schema = TeamSchema()

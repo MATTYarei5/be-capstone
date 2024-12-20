@@ -2,11 +2,16 @@ from flask import jsonify, request
 
 from models.team import Team, team_schema, teams_schema
 from util.reflection import populate_object
+from lib.authenticate import authenticate_return_auth, auth
 
 from db import db
 
 
-def add_team(request):
+@authenticate_return_auth
+def add_team(request, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     post_data = request.form if request.form else request.json
 
     name = post_data.get('name')
@@ -27,12 +32,14 @@ def add_team(request):
     return jsonify({"message": "team created", "result": team_schema.dump(new_team)}), 201
 
 
+@auth
 def get_all_teams():
     teams_query = db.session.query(Team).all()
 
     return jsonify({"message": "teams retrieved", "result": teams_schema.dump(teams_query)}), 200
 
 
+@auth
 def get_team_by_id(team_id):
     team_query = db.session.query(Team).filter(Team.team_id == team_id).first()
 
@@ -42,7 +49,11 @@ def get_team_by_id(team_id):
     return jsonify({"message": "team retrieved", "result": team_schema.dump(team_query)}), 200
 
 
-def update_team_by_id(request, team_id):
+@authenticate_return_auth
+def update_team_by_id(request, team_id, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     post_data = request.form if request.form else request.json
     team_query = db.session.query(Team).filter(Team.team_id == team_id).first()
 
@@ -55,7 +66,11 @@ def update_team_by_id(request, team_id):
     return jsonify({"message": "team updated", "result": team_schema.dump(team_query)}), 200
 
 
-def delete_team(team_id):
+@authenticate_return_auth
+def delete_team(team_id, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     team = db.session.query(Team).filter(Team.team_id == team_id).first()
 
     if not team:

@@ -2,11 +2,16 @@ from flask import jsonify, request
 
 from models.player import Player, player_schema, players_schema
 from util.reflection import populate_object
+from lib.authenticate import authenticate_return_auth, auth
 
 from db import db
 
 
-def add_player(request):
+@authenticate_return_auth
+def add_player(request, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     post_data = request.form if request.form else request.json
 
     name = post_data.get('name')
@@ -28,12 +33,14 @@ def add_player(request):
     return jsonify({"message": "player created", "result": player_schema.dump(new_player)}), 201
 
 
+@auth
 def get_all_players():
     players_query = db.session.query(Player).all()
 
     return jsonify({"message": "players retrieved", "result": players_schema.dump(players_query)}), 200
 
 
+@auth
 def get_player_by_id(player_id):
     player_query = db.session.query(Player).filter(Player.player_id == player_id).first()
 
@@ -43,7 +50,11 @@ def get_player_by_id(player_id):
     return jsonify({"message": "player retrieved", "result": player_schema.dump(player_query)}), 200
 
 
-def update_player_by_id(request, player_id):
+@authenticate_return_auth
+def update_player_by_id(request, player_id, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     post_data = request.form if request.form else request.json
     player_query = db.session.query(Player).filter(Player.player_id == player_id).first()
 
@@ -56,7 +67,11 @@ def update_player_by_id(request, player_id):
     return jsonify({"message": "player updated", "result": player_schema.dump(player_query)}), 200
 
 
-def delete_player(player_id):
+@authenticate_return_auth
+def delete_player(player_id, auth_info):
+    if auth_info.user.role != 'super-admin':
+        return jsonify({"message": "unauthorized"}), 401
+
     player = db.session.query(Player).filter(Player.player_id == player_id).first()
 
     if not player:

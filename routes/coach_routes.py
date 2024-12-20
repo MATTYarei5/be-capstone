@@ -12,7 +12,7 @@ def add_coach():
 
 @coaches.route("/coaches", methods=["GET"])
 def get_all_coaches():
-    return controllers.get_all_coaches()
+    return controllers.get_all_coaches(request)
 
 
 @coaches.route("/coach/<coach_id>", methods=["GET"])

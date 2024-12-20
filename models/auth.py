@@ -12,6 +12,8 @@ class Auth(db.Model):
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("User.user_id"), nullable=False)
     expiration = db.Column(db.DateTime, nullable=False)
 
+    user = db.relationship("User", back_populates="auth")
+
     def __init__(self, user_id, expiration):
         self.user_id = user_id
         self.expiration = expiration
@@ -20,6 +22,8 @@ class Auth(db.Model):
 class AuthSchema(ma.Schema):
     class Meta:
         fields = ['auth_token', 'user_id', 'expiration']
+
+    user = ma.fields.Nested("UserSchema", exclude=['auth'])
 
 
 auth_schema = AuthSchema()

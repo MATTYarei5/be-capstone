@@ -13,7 +13,7 @@ def add_user():
 
 @user.route("/users", methods=['GET'])
 def get_all_users():
-    return controllers.get_all_users()
+    return controllers.get_all_users(request)
 
 
 @user.route("/user/<user_id>", methods=['GET'])

@@ -22,6 +22,7 @@ class Coach(db.Model):
 class CoachSchema(ma.Schema):
     class Meta:
         fields = ['coach_id', 'name', 'experience', 'teams']
+
     teams = ma.fields.Nested("TeamSchema", many=True, exclude=['coach'])
 
 

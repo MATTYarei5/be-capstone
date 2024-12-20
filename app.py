@@ -9,7 +9,7 @@ from models.auth import Auth
 from models.coach import Coach
 from models.game import Game
 from models.player import Player
-from models.team_player_xref import team_player_xref_table
+from models.team_game_xref import team_game_xref_table
 from models.team import Team
 from models.user import User
 
